@@ -1,0 +1,20 @@
+[
+  {
+    "id": "location_001",
+    "name": "Test Area - Rhythm Game",
+    "lat": 35.6197488,
+    "lng": 139.7762173,
+    "radius": 2400,
+    "content": "rhythm",
+    "content_id": "highway_001"
+  },
+  {
+    "id": "location_002",
+    "name": "Test Area - Quiz",
+    "lat": 35.6197488,
+    "lng": 139.7762173,
+    "radius": 6000,
+    "content": "quiz-b",
+    "content_id": "santamonica_001"
+  }
+]
