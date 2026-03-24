@@ -10,6 +10,15 @@ export class GeofenceEngine {
     this.activeLocationId = null;
     this.debugMode = false;
     this.onStatusUpdate = null;
+    this._doneLocations = new Set(); // 1回完了したロケーション（物理的に退出するまで再入場しない）
+  }
+
+  // コンテンツが自発的に完了を通知する（「終了」ボタン等）
+  contentComplete(locationId) {
+    this._doneLocations.add(locationId);
+    if (this.activeLocationId === locationId) {
+      this.activeLocationId = null;
+    }
   }
 
   start(onStatusUpdate) {
@@ -53,10 +62,17 @@ export class GeofenceEngine {
       return { loc, rawDist, edgeDist, inside };
     });
 
+    // 完了済みロケーションを物理的に退出したらリセット（次回再訪で再び利用可能に）
+    for (const d of withDists) {
+      if (this._doneLocations.has(d.loc.id) && d.edgeDist > 100) {
+        this._doneLocations.delete(d.loc.id);
+      }
+    }
+
     if (!this.debugMode) {
-      // 現在地点で内側にあるロケーションを半径昇順でソートし、最小半径を優先
+      // 現在地点で内側にあるロケーション（完了済みを除く）を半径昇順でソートし最小半径を優先
       const insideLocs = withDists
-        .filter(d => d.inside)
+        .filter(d => d.inside && !this._doneLocations.has(d.loc.id))
         .sort((a, b) => a.loc.radius - b.loc.radius);
 
       const targetId = insideLocs.length > 0 ? insideLocs[0].loc.id : null;
@@ -91,8 +107,9 @@ export class GeofenceEngine {
       nearestLoc  = activeLoc;
       nearestDist = 0;
     } else {
-      // 待機中：最も近いロケーションを案内
+      // 待機中：最も近いロケーション（完了済みを除く）を案内
       for (const d of withDists) {
+        if (this._doneLocations.has(d.loc.id)) continue;
         if (d.edgeDist < nearestDist) {
           nearestDist = d.edgeDist;
           nearestLoc  = d.loc;

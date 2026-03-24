@@ -363,9 +363,16 @@ for (const loc of locations) {
   const origOnExit  = original.onExit.bind(original);
   original.onEnter = async (location) => {
     showContent(key);
+    // コンテンツが自発的に終了を通知するコールバックを設定
+    original.onComplete = () => {
+      geofence?.contentComplete(location.id); // GeofenceEngine に完了を通知
+      origOnExit(location);
+      hideContent();
+    };
     await origOnEnter(location);
   };
   original.onExit = (location) => {
+    original.onComplete = null;
     origOnExit(location);
     hideContent();
   };

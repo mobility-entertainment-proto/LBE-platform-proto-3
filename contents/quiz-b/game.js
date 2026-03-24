@@ -41,6 +41,7 @@ export class QuizB {
     this._skipReading = false;
     this._ttsDebug    = '';     // 診断用：最後の TTS 状態
     this._ttsDebugUntil = 0;   // 診断表示の期限（performance.now ms）
+    this.onComplete   = null;   // 全問終了時に index.html から設定されるコールバック
     this._introUntil  = 0;
     this._spokenResult = false;
     this._startTime   = 0;
@@ -761,7 +762,11 @@ export class QuizB {
       });
     }
     this._drawBtn('終了', this.cx + (hasNext ? bw*.55 : 0), this.H*.82, bw, bh, '#1a0a0a', '#ff6666', () => {
-      this._state = 'IDLE'; this._qIndex = 0;
+      if (this.onComplete) {
+        this.onComplete(); // 全問完了通知 → 待機画面へ戻る
+      } else {
+        this._state = 'IDLE'; this._qIndex = 0;
+      }
     });
   }
 
